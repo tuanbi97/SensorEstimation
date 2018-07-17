@@ -1,11 +1,98 @@
+import socket
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget
+import time
 
-app = QApplication(sys.argv)
-w = QWidget()
-w.resize(250, 150)
-w.move(300, 300)
-w.setWindowTitle('Simple')
-w.show()
+import numpy as np
+from matplotlib import animation
 
-sys.exit(app.exec_())
+from matplotlib.backends.qt_compat import QtCore, QtWidgets, is_pyqt5
+if is_pyqt5():
+    from matplotlib.backends.backend_qt5agg import (
+        FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
+else:
+    from matplotlib.backends.backend_qt4agg import (
+        FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
+from matplotlib.figure import Figure
+
+class SensorStream(FigureCanvas, animation.FuncAnimation):
+
+    aZ = []
+    ID = []
+    xrange = 400
+    yrange = 4
+    cnt = 0
+
+    def __init__(self):
+
+        self.initialize_socket()
+
+        self.fig = Figure(figsize=(10,3))
+        self.ax = self.fig.subplots()
+        print(str(self.fig.canvas))
+        self.ax.axis([0, self.xrange, -self.yrange, self.yrange])
+        self.line, = self.ax.plot(self.ID, self. aZ)
+        FigureCanvas.__init__(self, self.fig)
+        animation.FuncAnimation.__init__(self, fig = self.fig, func = self.animate, interval = 10, blit=True)
+
+    def initialize_socket(self):
+        self.HOST = ''
+        self.PORT = 5555
+        self.BUFSIZE = 4096
+
+        self.serv = socket.socket()
+        try:
+            self.serv.bind((self.HOST, self.PORT))
+            self.serv.listen(socket.SOMAXCONN)
+            self.conn, self.addr = self.serv.accept()
+        except :
+            self.serv.close()
+            exit(1)
+
+    def animate(self, i):
+        data = self.conn.recv(4096)
+        chunk = data.split()
+        # print(len(chunk))
+        tmp1 = 0.0
+        for j in range(0, len(chunk)):
+            tmp = chunk[j]
+            # print (tmp)
+            tmp = float(tmp)
+            self.cnt += 1
+            if self.cnt % 2 == 0:
+                self.aZ = np.append(self.aZ, tmp1)
+                self.ID = np.append(self.ID, int(tmp))
+                #print(tmp1, ' ', tmp)
+                if int(tmp) > self.xrange:
+                    self.aZ = self.aZ[1:len(self.aZ)]
+                    self.ID = self.ID[1:len(self.ID)]
+                    self.ax.axis([int(tmp) - self.xrange + 1, int(tmp), -self.yrange, self.yrange])
+            else:
+                tmp1 = tmp
+        self.line.set_data(self.ID, self.aZ)
+        return self.line,
+
+class ApplicationWindow(QtWidgets.QMainWindow):
+
+    def __init__(self):
+        super(ApplicationWindow, self).__init__()
+        self._main = QtWidgets.QWidget()
+        self.setCentralWidget(self._main)
+        self.layout = QtWidgets.QVBoxLayout(self._main)
+
+        # static_canvas = FigureCanvas(Figure(figsize=(5, 3)))
+        # layout.addWidget(static_canvas)
+        # self.addToolBar(NavigationToolbar(static_canvas, self))
+        #
+        # self._static_ax = static_canvas.figure.subplots()
+        # t = np.linspace(0, 10, 501)
+        # self._static_ax.plot(t, np.tan(t), ".")
+
+        self.sensorstream = SensorStream()
+        self.layout.addWidget(self.sensorstream)
+
+
+if __name__ == "__main__":
+    qapp = QtWidgets.QApplication(sys.argv)
+    app = ApplicationWindow()
+    app.show()
+    sys.exit(qapp.exec_())
