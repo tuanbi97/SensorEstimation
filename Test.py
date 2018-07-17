@@ -17,13 +17,13 @@ class SensorStream(FigureCanvas, animation.FuncAnimation):
     yrange = 4
     cnt = 0
 
-    def __init__(self):
+    def __init__(self, figsize):
 
         self.initialize_socket()
 
-        self.fig = Figure(figsize=(10,3))
+        self.fig = Figure(figsize=figsize)
         self.ax = self.fig.subplots()
-        print(str(self.fig.canvas))
+        #print(str(self.fig.canvas))
         self.ax.axis([0, self.xrange, -self.yrange, self.yrange])
         self.line, = self.ax.plot(self.ID, self. aZ)
         FigureCanvas.__init__(self, self.fig)
@@ -46,7 +46,7 @@ class SensorStream(FigureCanvas, animation.FuncAnimation):
     def animate(self, i):
         data = self.conn.recv(4096)
         chunk = data.split()
-        print(len(chunk))
+        #print(len(chunk))
         tmp1 = 0.0
         for j in range(0, len(chunk)):
             tmp = chunk[j]
@@ -74,8 +74,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(self._main)
         self.layout = QtWidgets.QVBoxLayout(self._main)
 
-        self.sensorstream = SensorStream()
+        self.sensorstream = SensorStream((10, 3))
         self.layout.addWidget(self.sensorstream)
+
+        self.startButton = QtWidgets.QPushButton()
 
 
 if __name__ == "__main__":
