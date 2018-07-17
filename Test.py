@@ -6,12 +6,7 @@ import numpy as np
 from matplotlib import animation
 
 from matplotlib.backends.qt_compat import QtCore, QtWidgets, is_pyqt5
-if is_pyqt5():
-    from matplotlib.backends.backend_qt5agg import (
-        FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
-else:
-    from matplotlib.backends.backend_qt4agg import (
-        FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
+from matplotlib.backends.backend_qt5agg import (FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
 
 class SensorStream(FigureCanvas, animation.FuncAnimation):
@@ -51,7 +46,7 @@ class SensorStream(FigureCanvas, animation.FuncAnimation):
     def animate(self, i):
         data = self.conn.recv(4096)
         chunk = data.split()
-        # print(len(chunk))
+        print(len(chunk))
         tmp1 = 0.0
         for j in range(0, len(chunk)):
             tmp = chunk[j]
@@ -78,14 +73,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self._main = QtWidgets.QWidget()
         self.setCentralWidget(self._main)
         self.layout = QtWidgets.QVBoxLayout(self._main)
-
-        # static_canvas = FigureCanvas(Figure(figsize=(5, 3)))
-        # layout.addWidget(static_canvas)
-        # self.addToolBar(NavigationToolbar(static_canvas, self))
-        #
-        # self._static_ax = static_canvas.figure.subplots()
-        # t = np.linspace(0, 10, 501)
-        # self._static_ax.plot(t, np.tan(t), ".")
 
         self.sensorstream = SensorStream()
         self.layout.addWidget(self.sensorstream)
