@@ -1,7 +1,4 @@
 import socket
-import thread
-from time import *
-import sys
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib import animation
@@ -51,7 +48,7 @@ try:
     serv.listen(socket.SOMAXCONN)
     conn, addr = serv.accept()
 except KeyboardInterrupt:
-    print "KeyboardInterrupt"
+    print ("KeyboardInterrupt")
     serv.close()
     exit(1)
 
@@ -76,12 +73,6 @@ check = 0
 
 anim = animation.FuncAnimation(fig, animate, init_func=init, interval=10, blit=True)
 plt.show()
-
-    # print (len(aZ), ' ', len(ID), ' ', ID[len(ID) - 1])
-
-    # while True:
-    #     if len(L) % 2 == 0:
-    #         break
 
 serv.close()
 conn.close()
