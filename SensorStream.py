@@ -51,8 +51,6 @@ class Window(QtGui.QWidget):
         layout.addWidget(self.p2, 1, 0)
         layout.addWidget(self.p3, 2, 0)
 
-        streamer.start(50)
-
 streamer = SensorStreamer()
 app = QtGui.QApplication(sys.argv)
 
@@ -64,5 +62,5 @@ c.show()
 w = Window()
 w.show()
 
-
+streamer.start(50)
 sys.exit(app.exec_())
