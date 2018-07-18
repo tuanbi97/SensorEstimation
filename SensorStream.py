@@ -34,11 +34,31 @@ class Window(QtGui.QWidget):
         layout.addWidget(self.p2, 1, 0)
         layout.addWidget(self.p3, 2, 0)
 
-        streamer.start(50)
+        streamer.start(40)
 
 streamer = SensorStreamer()
 app = QtGui.QApplication(sys.argv)
+
+#Sensor views
 w = Window()
 w.show()
+
+#Cube view
+p = gl.GLViewWidget()
+p.opts['distance'] = 20
+p.show()
+p.setWindowTitle('pyqtgraph example: GLViewWidget')
+
+ax = gl.GLAxisItem()
+ax.setSize(5,5,5)
+p.addItem(ax)
+
+b = gl.GLBoxItem()
+p.addItem(b)
+
+ax2 = gl.GLAxisItem()
+ax2.setParentItem(b)
+
+b.translate(1,1,1)
 
 sys.exit(app.exec_())
