@@ -2,20 +2,24 @@ from PyQt4 import QtGui, QtCore
 import pyqtgraph as pg
 class SensorPlot(pg.PlotWidget):
 
-    def __init__(self, plottype=0):
+    def __init__(self, plottype=0, title='Untitled', yRange = [-16, 16], xRange = [0, 600]):
         super(SensorPlot, self).__init__()
         self.X = []
         self.Y = []
         self.Z = []
         self.maxRangeDisplay = 600
         self.plottype = plottype
+        self.getPlotItem().setTitle(title)
+
+        self.setRange(yRange = yRange, xRange = xRange)
         self.initialize()
 
+
     def initialize(self):
-        self.setRange(yRange = [-16, 16], xRange = [0, self.maxRangeDisplay])
         self.pltX = self.plot(pen=QtGui.QPen(QtGui.QColor(255, 0, 0)))
         self.pltY = self.plot(pen=QtGui.QPen(QtGui.QColor(0, 255, 0)))
         self.pltZ = self.plot(pen=QtGui.QPen(QtGui.QColor(0, 0, 255)))
+
 
     def receive(self, events):
         print (len(events))

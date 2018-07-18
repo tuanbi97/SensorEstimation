@@ -2,6 +2,7 @@ import sys
 import socket
 from PyQt4 import QtGui, QtCore
 import pyqtgraph as pg
+import pyqtgraph.opengl as gl
 import numpy as np
 from SensorStreamer import SensorStreamer
 from SensorPlot import SensorPlot
@@ -12,22 +13,24 @@ class Window(QtGui.QWidget):
         self.initUI()
 
     def initUI(self):
+
         layout = QtGui.QGridLayout()
-        layout.setSpacing(10)
+        layout.setSpacing(20)
         self.setLayout(layout)
 
-        p1 = SensorPlot(0)
-        p2 = SensorPlot(1)
-        p3 = SensorPlot(2)
+        self.p1 = SensorPlot(0, 'Accelerometer', yRange = [-16, 16])
+        self.p2 = SensorPlot(1, 'Gyroscope', yRange = [-10, 10])
+        self.p3 = SensorPlot(2, 'Magnetometer', yRange= [-60, 100])
 
-        streamer.register(p1)
-        streamer.register(p2)
-        streamer.register(p3)
+        streamer.register(self.p1)
+        streamer.register(self.p2)
+        streamer.register(self.p3)
 
-        layout.addWidget(p1, 0, 0)
-        layout.addWidget(p2, 1, 0)
-        layout.addWidget(p3, 2, 0)
-        streamer.start(5)
+        layout.addWidget(self.p1, 0, 0)
+        layout.addWidget(self.p2, 1, 0)
+        layout.addWidget(self.p3, 2, 0)
+
+        streamer.start(10)
 
 
 streamer = SensorStreamer()
