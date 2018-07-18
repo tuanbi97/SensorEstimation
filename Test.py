@@ -7,6 +7,10 @@ import numpy as np
 from SensorStreamer import SensorStreamer
 from SensorPlot import SensorPlot
 
+class CubeView(gl.GLViewWidget):
+    def __init__(self):
+        super(CubeView, self).__init__()
+
 class Window(QtGui.QWidget):
     def __init__(self):
         super(Window, self).__init__()
@@ -30,8 +34,7 @@ class Window(QtGui.QWidget):
         layout.addWidget(self.p2, 1, 0)
         layout.addWidget(self.p3, 2, 0)
 
-        streamer.start(10)
-
+        streamer.start(40)
 
 streamer = SensorStreamer()
 app = QtGui.QApplication(sys.argv)

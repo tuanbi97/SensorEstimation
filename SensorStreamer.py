@@ -41,6 +41,6 @@ class SensorStreamer:
     def register(self, listener):
         self.listeners.append(listener)
 
-    def start(self, delay=10, HOST = '', PORT = 5555):
+    def start(self, delay=50, HOST = '', PORT = 5555):
         self.init_socket(HOST, PORT)
         self.timer.start(delay)
