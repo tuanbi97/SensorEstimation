@@ -12,8 +12,10 @@ class SensorPlot(pg.PlotWidget):
 
     def receive(self, events):
         print (len(events))
-        # for i in range(0, len(events)):
-        #     print(events[i])
+
+        
+        #for i in range(0, len(events)):
+        #    print(events[i])
 
 
 class Window(QtGui.QWidget):
