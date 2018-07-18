@@ -41,9 +41,14 @@ class SensorStream(FigureCanvas, animation.FuncAnimation):
         self.p2.axis([0, self.xrange, -self.yrange, self.yrange])
         self.p3.axis([0, self.xrange, -self.yrange, self.yrange])
 
+        self.p1.set_ylabel('Accelerate x')
+        self.p2.set_ylabel('Accelerate y')
+        self.p3.set_ylabel('Accelerate z')
+
         self.line1, = self.p1.plot(self.ID, self.aX, color='r')
-        self.line2, = self.p2.plot(self.ID, self.aY, color ='g')
+        self.line2, = self.p2.plot(self.ID, self.aY, color='g')
         self.line3, = self.p3.plot(self.ID, self.aZ, color='b')
+
         FigureCanvas.__init__(self, self.fig)
         animation.FuncAnimation.__init__(self, fig = self.fig, func = self.animate, interval = 10, blit=True)
 
@@ -79,6 +84,7 @@ class SensorStream(FigureCanvas, animation.FuncAnimation):
             self.mX = np.append(self.mX, mx)
             self.mY = np.append(self.mY, my)
             self.mZ = np.append(self.mZ, mz)
+
             self.ID = np.append(self.ID, int(id))
             if id > self.xrange:
                 self.aX = self.aX[1:len(self.aX)]
