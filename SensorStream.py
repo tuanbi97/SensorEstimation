@@ -62,5 +62,5 @@ c.show()
 w = Window()
 w.show()
 
-streamer.start(50)
+streamer.start(40)
 sys.exit(app.exec_())
