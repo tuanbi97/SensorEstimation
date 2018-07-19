@@ -31,6 +31,7 @@ class SensorStreamer:
             event.append((ax, ay, az))
             event.append((gx, gy, gz))
             event.append((mx, my, mz))
+            event.append(id)
             events.append(event)
         self.notifyAll(events)
 

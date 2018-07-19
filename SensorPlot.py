@@ -7,8 +7,6 @@ class SensorPlot(pg.PlotWidget):
         self.X = []
         self.Y = []
         self.Z = []
-        self.ID = []
-        self.index = 0
         self.maxRangeDisplay = 600
         self.plottype = plottype
         self.getPlotItem().setTitle(title)
@@ -32,14 +30,12 @@ class SensorPlot(pg.PlotWidget):
             self.X.append(event[self.plottype][0])
             self.Y.append(event[self.plottype][1])
             self.Z.append(event[self.plottype][2])
-            self.ID.append(self.index)
-            if self.index > self.maxRangeDisplay:
+            id = int(event[3])
+            if id > self.maxRangeDisplay:
                 self.X = self.X[1:len(self.X)]
                 self.Y = self.Y[1:len(self.Y)]
                 self.Z = self.Z[1:len(self.Z)]
-                self.ID = self.ID[1:len(self.ID)]
-                self.setRange(xRange = [self.index - self.maxRangeDisplay + 1, self.index])
-            self.index += 1
-        self.pltX.setData(y = self.X, x = self.ID)
-        self.pltY.setData(y = self.Y, x = self.ID)
-        self.pltZ.setData(y = self.Z, x = self.ID)
+                self.setRange(xRange = [id - self.maxRangeDisplay + 1, id])
+        self.pltX.setData(y = self.X, x = range(id - len(self.X) + 1, id + 1))
+        self.pltY.setData(y = self.Y, x = range(id - len(self.Y) + 1, id + 1))
+        self.pltZ.setData(y = self.Z, x = range(id - len(self.Z) + 1, id + 1))
