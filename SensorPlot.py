@@ -22,7 +22,6 @@ class SensorPlot(pg.PlotWidget):
         self.pltY = self.plot(pen=QtGui.QPen(QtGui.QColor(0, 255, 0)))
         self.pltZ = self.plot(pen=QtGui.QPen(QtGui.QColor(0, 0, 255)))
 
-
     def receive(self, events):
         print (len(events))
         self.draw(events)
