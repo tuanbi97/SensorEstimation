@@ -20,6 +20,8 @@ class ViewAxis(gl.GLAxisItem):
 
     def paint(self):
 
+        self.setupGLState()
+
         if self.antialias:
             glEnable(GL_LINE_SMOOTH)
             glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
@@ -86,7 +88,7 @@ class BoxItem(gl.GLMeshItem):
             drawFaces=True)
 
         self.ax = ViewAxis(width=1, mvisible=False)
-        self.ax.setSize(3, 3, 3)
+        self.ax.setSize(1, 1, 1)
         self.setParentItem(self.ax)
 
     def receive(self, events):
@@ -134,13 +136,11 @@ class CubeView(gl.GLViewWidget):
         self.setWindowTitle(title)
         self.setGeometry(600, 110, 600, 600)
 
-        self.ax = ViewAxis(width = 1, mvisible=True)
+        self.ax = ViewAxis(width = 1, alpha = 0.6, mvisible=True)
         self.ax.setSize(10, 10, 10)
 
         v = self.cameraPosition()
         self.box = BoxItem(size = [1.2, 2, 0.3])
-        self.box.translate(v.x(), v.y() + 8, v.z())
-        #self.ax.translate(v.x(), v.y() + 8, v.z())
 
         self.addItem(self.box.ax)
         self.addItem(self.ax)
