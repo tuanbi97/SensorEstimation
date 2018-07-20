@@ -11,15 +11,15 @@ from SensorStreamer import SensorStreamer
 from SensorPlot import SensorPlot
 from OpenGL.GL import *
 
+
 class ViewAxis(gl.GLAxisItem):
-    def __init__(self, width = 1, mvisible = True, alpha = 0.6):
+    def __init__(self, width=1, mvisible=True, alpha=0.6):
         super(ViewAxis, self).__init__()
         self.width = width
         self.alpha = alpha
         self.mvisible = mvisible
 
     def paint(self):
-
         self.setupGLState()
 
         if self.antialias:
@@ -46,8 +46,9 @@ class ViewAxis(gl.GLAxisItem):
 
         glLineWidth(1)
 
+
 class BoxItem(gl.GLMeshItem):
-    def __init__(self, size = [1, 1, 1]):
+    def __init__(self, size=[1, 1, 1]):
         self.verts = []
         tz = -1
         for x in range(-1, 2, 2):
@@ -58,7 +59,8 @@ class BoxItem(gl.GLMeshItem):
 
         self.mfaces = []
         self.mcolors = []
-        self.listColor = [(230, 25, 75, 0), (60, 180, 75, 0), (255, 225, 25, 0), (0, 130, 200, 0), (245, 130, 48, 0), (145, 30, 180, 0)]
+        self.listColor = [(230, 25, 75, 0), (60, 180, 75, 0), (255, 225, 25, 0), (0, 130, 200, 0), (245, 130, 48, 0),
+                          (145, 30, 180, 0)]
         self.listColor = [(1.0 * np.array(x)) / 255 for x in self.listColor]
 
         c = 0
@@ -81,25 +83,28 @@ class BoxItem(gl.GLMeshItem):
         self.mcolors = np.array(self.mcolors)
 
         super(BoxItem, self).__init__(vertexes=self.verts,
-            faces=self.mfaces,
-            faceColors=self.mcolors,
-            smooth = False,
-            drawEdges=False,
-            drawFaces=True)
+                                      faces=self.mfaces,
+                                      faceColors=self.mcolors,
+                                      smooth=False,
+                                      drawEdges=False,
+                                      drawFaces=True)
 
         self.ax = ViewAxis(width=1, mvisible=False)
         self.ax.setSize(1, 1, 1)
         self.setParentItem(self.ax)
 
     def receive(self, events):
-        #print(len(events))
+        # print(len(events))
         self.draw(events)
 
     def draw(self, events):
         for i in range(0, len(events)):
             event = events[i]
+            #self.ax.resetTransform()
+            #self.ax.rotate(event[4][0] * 180 / math.pi, 0, 0, 1)
+            #self.ax.rotate(event[4][1] * 180 / math.pi, 1, 0, 0)
+            #self.ax.rotate(event[4][2] * 180 / math.pi, 0, 1, 0)
             orientation = [x * 180 / math.pi for x in event[4]]
-            #print(orientation)
             v, rm = self.getRotation(orientation)
             self.ax.setTransform(rm)
 
@@ -110,7 +115,8 @@ class BoxItem(gl.GLMeshItem):
 
     def getRotation(self, angles):
         v = []
-        rotationMatrix = self.mrotate(angles[2], 0, 0, 1) * self.mrotate(angles[1], 0, 1, 0) * self.mrotate(angles[0], 1, 0, 0)
+        rotationMatrix = self.mrotate(angles[2], 1, 0, 0) * self.mrotate(angles[1], 0, 1, 0) * self.mrotate(angles[0],
+                                                                                                            0, 0, 1)
         # test Transform
         for i in range(0, len(self.verts)):
             vertex = self.verts[i]
@@ -125,7 +131,7 @@ class BoxItem(gl.GLMeshItem):
 
 
 class CubeView(gl.GLViewWidget):
-    def __init__(self, title = 'Untitled'):
+    def __init__(self, title='Untitled'):
         super(CubeView, self).__init__()
         self.title = title
         self.initUI(title)
@@ -136,21 +142,22 @@ class CubeView(gl.GLViewWidget):
         self.setWindowTitle(title)
         self.setGeometry(600, 110, 600, 600)
 
-        self.ax = ViewAxis(width = 1, alpha = 0.6, mvisible=True)
+        self.ax = ViewAxis(width=1, alpha=0.6, mvisible=True)
         self.ax.setSize(10, 10, 10)
 
         v = self.cameraPosition()
-        self.box = BoxItem(size = [1.2, 2, 0.3])
+        self.box = BoxItem(size=[1.2, 2, 0.3])
 
         self.addItem(self.box.ax)
         self.addItem(self.ax)
 
         streamer.register(self.box)
 
+
 streamer = SensorStreamer()
 app = QtGui.QApplication(sys.argv)
 
-#Cube view
+# Cube view
 c = CubeView('Baseline')
 c.show()
 
