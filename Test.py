@@ -104,7 +104,9 @@ class BoxItem(gl.GLMeshItem):
             #self.ax.rotate(event[4][0] * 180 / math.pi, 0, 0, 1)
             #self.ax.rotate(event[4][1] * 180 / math.pi, 1, 0, 0)
             #self.ax.rotate(event[4][2] * 180 / math.pi, 0, 1, 0)
-            orientation = [x * 180 / math.pi for x in event[4]]
+            #orientation = [x * 180 / math.pi for x in event[4]]
+            orientation = event[4]
+            print(orientation)
             v, rm = self.getRotation(orientation)
             self.ax.setTransform(rm)
 
@@ -115,8 +117,7 @@ class BoxItem(gl.GLMeshItem):
 
     def getRotation(self, angles):
         v = []
-        rotationMatrix = self.mrotate(angles[2], 1, 0, 0) * self.mrotate(angles[1], 0, 1, 0) * self.mrotate(angles[0],
-                                                                                                            0, 0, 1)
+        rotationMatrix = self.mrotate(angles[0], 0, 0, 1) * self.mrotate(angles[1], 1, 0, 0) * self.mrotate(angles[2], 0, 1, 0) #* self.mrotate(angles[1], 1, 0, 0)# * self.mrotate(angles[0], 0, 0, 1)
         # test Transform
         for i in range(0, len(self.verts)):
             vertex = self.verts[i]
