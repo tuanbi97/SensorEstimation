@@ -5,6 +5,8 @@ from PyQt4 import QtGui, QtCore
 import pyqtgraph as pg
 import pyqtgraph.opengl as gl
 import numpy as np
+from pyqtgraph import Transform3D
+
 from SensorStreamer import SensorStreamer
 from SensorPlot import SensorPlot
 from OpenGL.GL import *
@@ -42,24 +44,83 @@ class ViewAxis(gl.GLAxisItem):
 
         glLineWidth(1)
 
-class CubeItem(gl.GLBoxItem):
-    def __init__(self):
-        super(CubeItem, self).__init__()
-        self.setSize(x = 3, y = 5, z = 0.5)
+class BoxItem(gl.GLMeshItem):
+    def __init__(self, size = [1, 1, 1]):
+        self.verts = []
+        tz = -1
+        for x in range(-1, 2, 2):
+            for y in range(-1, 2, 2):
+                tz *= -1
+                for z in range(-1, 2, 2):
+                    self.verts.append([x * size[0], y * size[1], tz * z * size[2]])
+
+        self.mfaces = []
+        self.mcolors = []
+        self.listColor = [(230, 25, 75, 0), (60, 180, 75, 0), (255, 225, 25, 0), (0, 130, 200, 0), (245, 130, 48, 0), (145, 30, 180, 0)]
+        self.listColor = [(1.0 * np.array(x)) / 255 for x in self.listColor]
+
+        c = 0
+        for i in range(0, 5, 4):
+            self.mfaces.append([i, i + 1, i + 2])
+            self.mfaces.append([i + 2, i + 3, i])
+            self.mcolors.append(self.listColor[c])
+            self.mcolors.append(self.listColor[c])
+            c += 1
+
+        for i in range(0, 4):
+            self.mfaces.append([i, (i + 1) % 4, i + 4])
+            self.mfaces.append([i + 4, (i + 1) % 4 + 4, (i + 1) % 4])
+            self.mcolors.append(self.listColor[c])
+            self.mcolors.append(self.listColor[c])
+            c += 1
+
+        self.verts = np.array(self.verts)
+        self.mfaces = np.array(self.mfaces)
+        self.mcolors = np.array(self.mcolors)
+
+        super(BoxItem, self).__init__(vertexes=self.verts,
+            faces=self.mfaces,
+            faceColors=self.mcolors,
+            smooth = False,
+            drawEdges=False,
+            drawFaces=True)
+
+        self.ax = ViewAxis(width=1, mvisible=False)
+        self.ax.setSize(3, 3, 3)
+        self.setParentItem(self.ax)
 
     def receive(self, events):
-        print (len(events))
+        #print(len(events))
         self.draw(events)
 
     def draw(self, events):
         for i in range(0, len(events)):
             event = events[i]
-            orientation = [x * 180.0 / math.pi for x in event[4]]
-            print(orientation)
-            self.resetTransform()
-            self.rotate(orientation[0], 1, 0, 0)
-            self.rotate(orientation[1], 0, 1, 0)
-            self.rotate(orientation[2], 0, 0, 1)
+            orientation = [x * 180 / math.pi for x in event[4]]
+            #print(orientation)
+            v, rm = self.getRotation(orientation)
+            self.ax.setTransform(rm)
+
+    def mrotate(self, angle, x, y, z):
+        tr = Transform3D()
+        tr.rotate(angle, x, y, z)
+        return tr
+
+    def getRotation(self, angles):
+        v = []
+        rotationMatrix = self.mrotate(angles[2], 0, 0, 1) * self.mrotate(angles[1], 0, 1, 0) * self.mrotate(angles[0], 1, 0, 0)
+        # test Transform
+        for i in range(0, len(self.verts)):
+            vertex = self.verts[i]
+            vertex = np.append(vertex, 1)
+            vr = QtGui.QVector4D(vertex[0], vertex[1], vertex[2], vertex[3])
+            vr = rotationMatrix * vr
+            v.append([vr.x(), vr.y(), vr.z()])
+        return np.array(v), rotationMatrix
+
+    def translate(self, dx, dy, dz, local=False):
+        self.ax.translate(dx, dy, dz, local)
+
 
 class CubeView(gl.GLViewWidget):
     def __init__(self, title = 'Untitled'):
@@ -75,74 +136,19 @@ class CubeView(gl.GLViewWidget):
 
         self.ax = ViewAxis(width = 1, mvisible=True)
         self.ax.setSize(10, 10, 10)
-        v = self.cameraPosition()
-        self.ax.translate(v.x(), v.y() + 8, v.z())
-        self.box = CubeItem()
-        #self.box.setParentItem(self.ax)
-        #
-        # ax2 = ViewAxis(width = 4, mvisible=True)
-        # ax2.translate(1.5, 2.5, 0.25)
-        # ax2.setParentItem(self.box)
 
+        v = self.cameraPosition()
+        self.box = BoxItem(size = [1.2, 2, 0.3])
+        self.box.translate(v.x(), v.y() + 8, v.z())
+        #self.ax.translate(v.x(), v.y() + 8, v.z())
+
+        self.addItem(self.box.ax)
         self.addItem(self.ax)
 
-        #self.box.translate(-1.5, -2.5, -0.25)
-
-        streamer.register(self)
-
-    def receive(self, events):
-        print (len(events))
-        self.draw(events)
-
-    def draw(self, events):
-        self.box.hide()
-        self.box = CubeItem()
-        self.box.translate(-1.5, -2.5, -0.25)
-
-        ax2 = ViewAxis(width=4, mvisible=True)
-        ax2.translate(1.5, 2.5, 0.25)
-        ax2.setParentItem(self.box)
-
-        for i in range(0, len(events)):
-            event = events[i]
-            orientation = [x * 180.0 / math.pi for x in event[4]]
-            print(orientation)
-            self.box.rotate(orientation[0], 1, 0, 0)
-            self.box.rotate(orientation[1], 0, 1, 0)
-            self.box.rotate(orientation[2], 0, 0, 1)
-
-        self.box.setParentItem(self.ax)
-
-
-class Window(QtGui.QWidget):
-    def __init__(self):
-        super(Window, self).__init__()
-        self.initUI()
-
-    def initUI(self):
-
-        layout = QtGui.QGridLayout()
-        layout.setSpacing(20)
-        self.setLayout(layout)
-
-        self.p1 = SensorPlot(0, 'Accelerometer', yRange = [-16, 16])
-        self.p2 = SensorPlot(1, 'Gyroscope', yRange = [-10, 10])
-        self.p3 = SensorPlot(2, 'Magnetometer', yRange= [-60, 100])
-
-        streamer.register(self.p1)
-        streamer.register(self.p2)
-        streamer.register(self.p3)
-
-        layout.addWidget(self.p1, 0, 0)
-        layout.addWidget(self.p2, 1, 0)
-        layout.addWidget(self.p3, 2, 0)
+        streamer.register(self.box)
 
 streamer = SensorStreamer()
 app = QtGui.QApplication(sys.argv)
-w = Window()
-w.show()
-
-#streamer.start(40)
 
 #Cube view
 c = CubeView('Baseline')
