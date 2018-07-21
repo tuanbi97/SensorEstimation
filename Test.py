@@ -31,15 +31,15 @@ class ViewAxis(gl.GLAxisItem):
         glBegin(GL_LINES)
 
         x, y, z = self.size()
-        glColor4f(0, 0, 1, self.alpha * int(self.mvisible))  # z is green
+        glColor4f(0, 0, 1, self.alpha * int(self.mvisible))  # z is blue
         glVertex3f(0, 0, 0)
         glVertex3f(0, 0, z)
 
-        glColor4f(0, 1, 0, self.alpha * int(self.mvisible))  # y is yellow
+        glColor4f(0, 1, 0, self.alpha * int(self.mvisible))  # y is green
         glVertex3f(0, 0, 0)
         glVertex3f(0, y, 0)
 
-        glColor4f(1, 0, 0, self.alpha * int(self.mvisible))  # x is blue
+        glColor4f(1, 0, 0, self.alpha * int(self.mvisible))  # x is red
         glVertex3f(0, 0, 0)
         glVertex3f(x, 0, 0)
         glEnd()
@@ -89,8 +89,8 @@ class BoxItem(gl.GLMeshItem):
                                       drawEdges=False,
                                       drawFaces=True)
 
-        self.ax = ViewAxis(width=1, mvisible=False)
-        self.ax.setSize(1, 1, 1)
+        self.ax = ViewAxis(width=1, mvisible=True)
+        self.ax.setSize(4, 4, 4)
         self.setParentItem(self.ax)
 
     def receive(self, events):
@@ -117,7 +117,8 @@ class BoxItem(gl.GLMeshItem):
 
     def getRotation(self, angles):
         v = []
-        rotationMatrix = self.mrotate(angles[0], 0, 0, 1) * self.mrotate(angles[1], 1, 0, 0) * self.mrotate(angles[2], 0, 1, 0) #* self.mrotate(angles[1], 1, 0, 0)# * self.mrotate(angles[0], 0, 0, 1)
+        # rotationMatrix = self.mrotate(angles[0], 0, 0, 1) * self.mrotate(angles[1], 1, 0, 0) * self.mrotate(angles[2], 0, 1, 0) #* self.mrotate(angles[1], 1, 0, 0)# * self.mrotate(angles[0], 0, 0, 1)
+        rotationMatrix = self.mrotate(-angles[0], 0, 0, 1) * self.mrotate(-angles[1], 1, 0, 0) * self.mrotate(angles[2], 0, 1, 0)
         # test Transform
         for i in range(0, len(self.verts)):
             vertex = self.verts[i]
