@@ -47,6 +47,33 @@ class ViewAxis(gl.GLAxisItem):
         glLineWidth(1)
 
 
+class Transformer():
+    @staticmethod
+    def transform(events):
+        angles = []
+        for i in range(len(events)):
+            Ex, Ey, Ez = events[i][1] #Mag
+            Ax, Ay, Az = events[i][2] #Gra
+            Hx = Ey * Az - Ez * Ay
+            Hy = Ez * Ax - Ex * Az
+            Hz = Ex * Ay - Ey * Ax
+            normH = math.sqrt(Hx * Hx + Hy * Hy + Hz * Hz)
+            invH = 1.0 / normH
+            Hx *= invH
+            Hy *= invH
+            Hz *= invH
+            normA = math.sqrt(Ax * Ax + Ay * Ay + Az * Az)
+            invA = 1.0 / normA
+            Ax *= invA
+            Ay *= invA
+            Az *= invA
+            Mx = Ay * Hz - Az * Hy
+            My = Az * Hx - Ax * Hz
+            Mz = Ax * Hy - Ay * Hx
+            angle = (math.atan2(-Hy, My), math.asin(Ay), math.atan2(-Ax, Az))
+            angles.append([math.degrees(x) for x in angle])
+        return angles
+
 class BoxItem(gl.GLMeshItem):
     def __init__(self, size=[1, 1, 1]):
         self.verts = []
@@ -95,17 +122,12 @@ class BoxItem(gl.GLMeshItem):
 
     def receive(self, events):
         # print(len(events))
-        self.draw(events)
+        angles = Transformer.transform(events)
+        self.draw(angles)
 
-    def draw(self, events):
-        for i in range(0, len(events)):
-            event = events[i]
-            #self.ax.resetTransform()
-            #self.ax.rotate(event[4][0] * 180 / math.pi, 0, 0, 1)
-            #self.ax.rotate(event[4][1] * 180 / math.pi, 1, 0, 0)
-            #self.ax.rotate(event[4][2] * 180 / math.pi, 0, 1, 0)
-            #orientation = [x * 180 / math.pi for x in event[4]]
-            orientation = event[4]
+    def draw(self, angles):
+        for i in range(0, len(angles)):
+            orientation = angles[i]
             print(orientation)
             v, rm = self.getRotation(orientation)
             self.ax.setTransform(rm)
@@ -118,7 +140,7 @@ class BoxItem(gl.GLMeshItem):
     def getRotation(self, angles):
         v = []
         # rotationMatrix = self.mrotate(angles[0], 0, 0, 1) * self.mrotate(angles[1], 1, 0, 0) * self.mrotate(angles[2], 0, 1, 0) #* self.mrotate(angles[1], 1, 0, 0)# * self.mrotate(angles[0], 0, 0, 1)
-        rotationMatrix = self.mrotate(-angles[0], 0, 0, 1) * self.mrotate(-angles[1], 1, 0, 0) * self.mrotate(angles[2], 0, 1, 0)
+        rotationMatrix = self.mrotate(angles[0], 0, 0, 1) * self.mrotate(angles[1], 1, 0, 0) * self.mrotate(angles[2], 0, 1, 0)
         # test Transform
         for i in range(0, len(self.verts)):
             vertex = self.verts[i]
