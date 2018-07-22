@@ -29,21 +29,48 @@ class ViewAxis(gl.GLAxisItem):
         glBegin(GL_LINES)
 
         x, y, z = self.size()
-        glColor4f(0, 0, 1, self.alpha * int(self.mvisible))  # z is green
+        glColor4f(0, 0, 1, self.alpha * int(self.mvisible))  # z is blue
         glVertex3f(0, 0, 0)
         glVertex3f(0, 0, z)
 
-        glColor4f(0, 1, 0, self.alpha * int(self.mvisible))  # y is yellow
+        glColor4f(0, 1, 0, self.alpha * int(self.mvisible))  # y is green
         glVertex3f(0, 0, 0)
         glVertex3f(0, y, 0)
 
-        glColor4f(1, 0, 0, self.alpha * int(self.mvisible))  # x is blue
+        glColor4f(1, 0, 0, self.alpha * int(self.mvisible))  # x is red
         glVertex3f(0, 0, 0)
         glVertex3f(x, 0, 0)
         glEnd()
 
         glLineWidth(1)
 
+
+class Transformer():
+    @staticmethod
+    def transform(events):
+        angles = []
+        for i in range(len(events)):
+            Ex, Ey, Ez = events[i][1] #Mag
+            Ax, Ay, Az = events[i][2] #Gra
+            Hx = Ey * Az - Ez * Ay
+            Hy = Ez * Ax - Ex * Az
+            Hz = Ex * Ay - Ey * Ax
+            normH = math.sqrt(Hx * Hx + Hy * Hy + Hz * Hz)
+            invH = 1.0 / normH
+            Hx *= invH
+            Hy *= invH
+            Hz *= invH
+            normA = math.sqrt(Ax * Ax + Ay * Ay + Az * Az)
+            invA = 1.0 / normA
+            Ax *= invA
+            Ay *= invA
+            Az *= invA
+            Mx = Ay * Hz - Az * Hy
+            My = Az * Hx - Ax * Hz
+            Mz = Ax * Hy - Ay * Hx
+            angle = (math.atan2(-Hy, My), math.asin(Ay), math.atan2(-Ax, Az))
+            angles.append([math.degrees(x) for x in angle])
+        return angles
 
 class BoxItem(gl.GLMeshItem):
     def __init__(self, size=[1, 1, 1]):
@@ -87,23 +114,19 @@ class BoxItem(gl.GLMeshItem):
                                       drawEdges=False,
                                       drawFaces=True)
 
-        self.ax = ViewAxis(width=1, mvisible=False)
-        self.ax.setSize(1, 1, 1)
+        self.ax = ViewAxis(width=1, mvisible=True)
+        self.ax.setSize(4, 4, 4)
         self.setParentItem(self.ax)
 
     def receive(self, events):
         # print(len(events))
-        self.draw(events)
+        angles = Transformer.transform(events)
+        self.draw(angles)
 
-    def draw(self, events):
-        for i in range(0, len(events)):
-            event = events[i]
-            #self.ax.resetTransform()
-            #self.ax.rotate(event[4][0] * 180 / math.pi, 0, 0, 1)
-            #self.ax.rotate(event[4][1] * 180 / math.pi, 1, 0, 0)
-            #self.ax.rotate(event[4][2] * 180 / math.pi, 0, 1, 0)
-            #orientation = [x * 180 / math.pi for x in event[4]]
-            orientation = event[4]
+    def draw(self, angles):
+        for i in range(0, len(angles)):
+            orientation = angles[i]
+            #print(orientation)
             v, rm = self.getRotation(orientation)
             self.ax.setTransform(rm)
 
@@ -114,8 +137,8 @@ class BoxItem(gl.GLMeshItem):
 
     def getRotation(self, angles):
         v = []
-        #rotationMatrix = self.mrotate(-angles[0], 0, 0, 1) * self.mrotate(angles[1], 1, 0, 0) * self.mrotate(-angles[2], 0, 1, 0)
-        rotationMatrix = self.mrotate(-angles[0], 0, 0, 1) * self.mrotate(-angles[1], 1, 0, 0) * self.mrotate(angles[2], 0, 1, 0)
+        # rotationMatrix = self.mrotate(angles[0], 0, 0, 1) * self.mrotate(angles[1], 1, 0, 0) * self.mrotate(angles[2], 0, 1, 0) #* self.mrotate(angles[1], 1, 0, 0)# * self.mrotate(angles[0], 0, 0, 1)
+        rotationMatrix = self.mrotate(angles[0], 0, 0, 1) * self.mrotate(angles[1], 1, 0, 0) * self.mrotate(angles[2], 0, 1, 0)
         # test Transform
         for i in range(0, len(self.verts)):
             vertex = self.verts[i]
@@ -165,8 +188,8 @@ class Window(QtGui.QWidget):
         self.setGeometry(300, 110, 600, 600)
 
         self.p1 = SensorPlot(0, 'Accelerometer', yRange = [-16, 16])
-        self.p2 = SensorPlot(1, 'Magnetometer', yRange = [-10, 10])
-        self.p3 = SensorPlot(2, 'Gravity', yRange= [-60, 100])
+        self.p2 = SensorPlot(1, 'Magnetometer', yRange = [-100, 100])
+        self.p3 = SensorPlot(2, 'Gravity', yRange= [-30, 30])
 
         streamer.register(self.p1)
         streamer.register(self.p2)
