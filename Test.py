@@ -186,6 +186,6 @@ app = QtGui.QApplication(sys.argv)
 c = CubeView('Baseline')
 c.show()
 
-streamer.start(40)
+streamer.start(40, PORT = 5556)
 
 sys.exit(app.exec_())

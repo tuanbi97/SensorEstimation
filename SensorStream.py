@@ -210,5 +210,5 @@ w.show()
 c = CubeView()
 c.show()
 
-streamer.start(40)
+streamer.start(40, PORT = 5556)
 sys.exit(app.exec_())
