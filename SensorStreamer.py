@@ -26,11 +26,11 @@ class SensorStreamer:
         events = []
         for j in range(0, len(chunk) - 1):
             tmp = chunk[j]
-            ax, ay, az, mx, my, mz, gx, gy, gz, id = [float(x) for x in tmp.split()]
+            ax, ay, az, gx, gy, gz, mx, my, mz, id = [float(x) for x in tmp.split()]
             event = []
             event.append((ax, ay, az))
-            event.append((mx, my, mz))
             event.append((gx, gy, gz))
+            event.append((mx, my, mz))
             event.append(id)
             events.append(event)
         self.notifyAll(events)

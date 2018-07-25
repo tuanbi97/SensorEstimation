@@ -1,6 +1,8 @@
 import sys
 import math
 import socket
+import time
+
 from PyQt4 import QtGui, QtCore
 import pyqtgraph as pg
 import pyqtgraph.opengl as gl
@@ -8,7 +10,7 @@ import numpy as np
 from pyqtgraph import Transform3D
 
 from SensorStreamer import SensorStreamer
-from SensorPlot import SensorPlot
+from DCM9D import TR_IMUFilter
 from OpenGL.GL import *
 
 
@@ -46,33 +48,15 @@ class ViewAxis(gl.GLAxisItem):
 
         glLineWidth(1)
 
-
 class Transformer():
-    @staticmethod
-    def transform(events):
+
+    def __init__(self):
+        self.filter = TR_IMUFilter()
+
+    def transform(self, events):
         angles = []
-        for i in range(len(events)):
-            Ex, Ey, Ez = events[i][1] #Mag
-            Ax, Ay, Az = events[i][2] #Gra
-            Hx = Ey * Az - Ez * Ay
-            Hy = Ez * Ax - Ex * Az
-            Hz = Ex * Ay - Ey * Ax
-            normH = math.sqrt(Hx * Hx + Hy * Hy + Hz * Hz)
-            invH = 1.0 / normH
-            Hx *= invH
-            Hy *= invH
-            Hz *= invH
-            normA = math.sqrt(Ax * Ax + Ay * Ay + Az * Az)
-            invA = 1.0 / normA
-            Ax *= invA
-            Ay *= invA
-            Az *= invA
-            Mx = Ay * Hz - Az * Hy
-            My = Az * Hx - Ax * Hz
-            Mz = Ax * Hy - Ay * Hx
-            angle = (math.atan2(-Hy, My), math.asin(Ay), math.atan2(-Ax, Az))
-            #angle = (math.acos(My/math.sqrt(1 - Ay * Ay)), math.asin(Ay), math.atan2(-Ax, Az))
-            angles.append([math.degrees(x) for x in angle])
+        for i in range(0, len(events)):
+             angles.append(self.filter.processingEvent(events[i]))
         return angles
 
 class BoxItem(gl.GLMeshItem):
@@ -121,15 +105,16 @@ class BoxItem(gl.GLMeshItem):
         self.ax.setSize(4, 4, 4)
         self.setParentItem(self.ax)
 
+        self.transformer = Transformer()
+
     def receive(self, events):
         # print(len(events))
-        angles = Transformer.transform(events)
+        angles = self.transformer.transform(events)
         self.draw(angles)
 
     def draw(self, angles):
         for i in range(0, len(angles)):
             orientation = angles[i]
-            print(orientation)
             v, rm = self.getRotation(orientation)
             self.ax.setTransform(rm)
 
