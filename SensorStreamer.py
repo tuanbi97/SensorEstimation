@@ -23,8 +23,9 @@ class SensorStreamer:
             exit(1)
 
     def update(self):
-        print(time.clock() - self.lastCall)
-        self.lastCall = time.clock()
+        #t = time.clock()
+        #print(t - self.lastCall)
+        #self.lastCall = t
         data = self.conn.recv(4096)
         chunk = data.split('\n')
         events = []

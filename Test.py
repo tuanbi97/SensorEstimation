@@ -8,9 +8,8 @@ import pyqtgraph as pg
 import pyqtgraph.opengl as gl
 import numpy as np
 from pyqtgraph import Transform3D
-
+from MadgwickAHRS import MadgwickAHRS
 from SensorStreamer import SensorStreamer
-from DCM import TR_IMUFilter
 from OpenGL.GL import *
 
 
@@ -74,11 +73,11 @@ class CubeView(gl.GLViewWidget):
 class Transformer():
 
     def __init__(self):
-        self.filter = TR_IMUFilter()
+        self.filter = MadgwickAHRS()
 
     def transform(self, events):
-        if self.filter.lastUpdate == -1:
-            self.filter.lastUpdate = time.clock()
+        # if self.filter.lastUpdate == -1:
+        #     self.filter.lastUpdate = time.clock()
 
         angles = []
         angles.append(self.filter.processingEvent(events[len(events) - 1]))
@@ -152,8 +151,8 @@ class BoxItem(gl.GLMeshItem):
 
     def getRotation(self, angles):
         v = []
-        rotationMatrix = self.mrotate(angles[0], 0, 0, 1) * self.mrotate(angles[1], 1, 0, 0) * self.mrotate(angles[2], 0, 1, 0)
-        #rotationMatrix = self.mrotate(angles[2], 0, 1, 0) * self.mrotate(angles[1], 1, 0, 0) * self.mrotate(angles[0], 0, 0, 1)
+        #rotationMatrix = self.mrotate(angles[0], 0, 0, 1) * self.mrotate(angles[1], 1, 0, 0) * self.mrotate(angles[2], 0, 1, 0)
+        rotationMatrix = self.mrotate(angles[0], 0, 0, 1) * self.mrotate(angles[1], 0, 1, 0) * self.mrotate(angles[2], 1, 0, 0)
         # test Transform
         for i in range(0, len(self.verts)):
             vertex = self.verts[i]
@@ -174,6 +173,6 @@ app = QtGui.QApplication(sys.argv)
 c = CubeView('Baseline')
 c.show()
 
-streamer.start(5, PORT = 5556)
+streamer.start(40, PORT = 5556)
 
 sys.exit(app.exec_())

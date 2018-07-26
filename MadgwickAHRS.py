@@ -1,5 +1,6 @@
 import struct
 import math
+import time
 
 
 class MadgwickAHRS:
@@ -10,10 +11,28 @@ class MadgwickAHRS:
         self.q2 = 0.0
         self.q3 = 0.0
         self.beta = 0.1
+        self.lastUpdate = time.clock()
+
+    def processingEvent(self, event):
+        ax, ay, az = event[0]
+        gx, gy, gz = event[1]
+        self.MadgwickAHRSupdateIMU(gx, gy, gz, ax, ay, az)
+        angles = self.Quaternion2YPR()
+        return angles
+
+    def Quaternion2YPR(self):
+
+        roll = math.atan2(2 * (self.q0 * self.q1 + self.q2 * self.q3), self.q0**2 - self.q1**2 - self.q2**2 + self.q3**2)
+        pitch = -math.asin(2 * (self.q1 * self.q3 - self.q0 * self.q2))
+        yaw = math.atan2(2 * (self.q1 * self.q2 + self.q0 * self.q3), self.q0**2 + self.q1**2 - self.q2**2 - self.q3**2)
+
+        return [yaw * 180 / math.pi, pitch * 180 / math.pi, roll * 180 / math.pi]
 
     def MadgwickAHRSupdateIMU(self, gx, gy, gz, ax, ay, az):
 
-        sampleFreq = 50.0
+        t = time.clock()
+        sampleFreq = 1 / (t-self.lastUpdate)
+        self.lastUpdate = t
 
         # Rate of change of quaternion from gyroscope
         qDot1 = 0.5 * (-self.q1 * gx - self.q2 * gy - self.q3 * gz)
