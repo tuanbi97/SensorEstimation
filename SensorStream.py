@@ -10,6 +10,9 @@ from SensorPlot import SensorPlot
 from pyqtgraph import Transform3D
 from OpenGL.GL import *
 
+from MadgwickAHRS import MadgwickAHRS
+from MahonyAHRS import MahonyAHRS
+
 class ViewAxis(gl.GLAxisItem):
     def __init__(self, width=1, mvisible=True, alpha=0.6):
         super(ViewAxis, self).__init__()
@@ -46,30 +49,17 @@ class ViewAxis(gl.GLAxisItem):
 
 
 class Transformer():
-    @staticmethod
-    def transform(events):
+
+    def __init__(self):
+        self.filter = MadgwickAHRS()
+        #self.filter = MahonyAHRS()
+
+    def transform(self, events):
+
         angles = []
-        for i in range(len(events)):
-            Ex, Ey, Ez = events[i][1] #Mag
-            Ax, Ay, Az = events[i][2] #Gra
-            Hx = Ey * Az - Ez * Ay
-            Hy = Ez * Ax - Ex * Az
-            Hz = Ex * Ay - Ey * Ax
-            normH = math.sqrt(Hx * Hx + Hy * Hy + Hz * Hz)
-            invH = 1.0 / normH
-            Hx *= invH
-            Hy *= invH
-            Hz *= invH
-            normA = math.sqrt(Ax * Ax + Ay * Ay + Az * Az)
-            invA = 1.0 / normA
-            Ax *= invA
-            Ay *= invA
-            Az *= invA
-            Mx = Ay * Hz - Az * Hy
-            My = Az * Hx - Ax * Hz
-            Mz = Ax * Hy - Ay * Hx
-            angle = (math.atan2(-Hy, My), math.asin(Ay), math.atan2(-Ax, Az))
-            angles.append([math.degrees(x) for x in angle])
+        angles.append(self.filter.processingEvent(events[len(events) - 1], False))
+        # for i in range(0, len(events)):
+        #       angles.append(self.filter.processingEvent(events[i], False))
         return angles
 
 class BoxItem(gl.GLMeshItem):
@@ -118,9 +108,11 @@ class BoxItem(gl.GLMeshItem):
         self.ax.setSize(4, 4, 4)
         self.setParentItem(self.ax)
 
+        self.transformer = Transformer()
+
     def receive(self, events):
         # print(len(events))
-        angles = Transformer.transform(events)
+        angles = self.transformer.transform(events)
         self.draw(angles)
 
     def draw(self, angles):
@@ -138,7 +130,7 @@ class BoxItem(gl.GLMeshItem):
     def getRotation(self, angles):
         v = []
         # rotationMatrix = self.mrotate(angles[0], 0, 0, 1) * self.mrotate(angles[1], 1, 0, 0) * self.mrotate(angles[2], 0, 1, 0) #* self.mrotate(angles[1], 1, 0, 0)# * self.mrotate(angles[0], 0, 0, 1)
-        rotationMatrix = self.mrotate(angles[0], 0, 0, 1) * self.mrotate(angles[1], 1, 0, 0) * self.mrotate(angles[2], 0, 1, 0)
+        rotationMatrix = self.mrotate(angles[0], 0, 0, 1) * self.mrotate(angles[1], 0, 1, 0) * self.mrotate(angles[2], 1, 0, 0)
         # test Transform
         for i in range(0, len(self.verts)):
             vertex = self.verts[i]
@@ -153,16 +145,16 @@ class BoxItem(gl.GLMeshItem):
 
 
 class CubeView(gl.GLViewWidget):
-    def __init__(self, title='Untitled'):
+    def __init__(self, title='Untitled', position = [1000, 100, 600, 600]):
         super(CubeView, self).__init__()
         self.title = title
-        self.initUI(title)
+        self.initUI(title, position)
 
-    def initUI(self, title):
+    def initUI(self, title, pos):
         self.opts['elevation'] = 0
         self.opts['azimuth'] = -90
         self.setWindowTitle(title)
-        self.setGeometry(1000, 110, 600, 600)
+        self.setGeometry(pos[0], pos[1], pos[2], pos[3])
 
         self.ax = ViewAxis(width=1, alpha=0.6, mvisible=True)
         self.ax.setSize(10, 10, 10)
@@ -185,11 +177,11 @@ class Window(QtGui.QWidget):
         layout = QtGui.QGridLayout()
         layout.setSpacing(20)
         self.setLayout(layout)
-        self.setGeometry(300, 110, 600, 600)
+        self.setGeometry(200, 100, 800, 800)
 
         self.p1 = SensorPlot(0, 'Accelerometer', yRange = [-16, 16])
-        self.p2 = SensorPlot(1, 'Magnetometer', yRange = [-100, 100])
-        self.p3 = SensorPlot(2, 'Gravity', yRange= [-30, 30])
+        self.p2 = SensorPlot(1, 'Gyroscope', yRange = [-16, 16])
+        self.p3 = SensorPlot(2, 'Magnetometer', yRange= [-100, 100])
 
         streamer.register(self.p1)
         streamer.register(self.p2)
@@ -207,8 +199,13 @@ w = Window()
 w.show()
 
 #Cube view
-c = CubeView()
+c = CubeView(title = "Magdwick", position = [1000, 100, 400, 400])
+c.box.transformer.filter = MadgwickAHRS()
 c.show()
+
+c1 = CubeView(title = "Mahony", position = [1000, 500, 400, 400])
+c1.box.transformer.filter = MahonyAHRS()
+c1.show()
 
 streamer.start(40, PORT = 5556)
 sys.exit(app.exec_())
