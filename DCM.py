@@ -23,7 +23,7 @@ class TR_IMUFilter:
         self.integralFBy = 0.0
         self.integralFBz = 0.0
 
-        self.lastUpdate = time.clock()
+        self.lastUpdate = -1
         self.now = 0
 
     def processingEvent(self, event):

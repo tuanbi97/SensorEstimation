@@ -10,7 +10,7 @@ import numpy as np
 from pyqtgraph import Transform3D
 
 from SensorStreamer import SensorStreamer
-from DCM9D import TR_IMUFilter
+from DCM import TR_IMUFilter
 from OpenGL.GL import *
 
 
@@ -54,9 +54,13 @@ class Transformer():
         self.filter = TR_IMUFilter()
 
     def transform(self, events):
+        if self.filter.lastUpdate == -1:
+            self.filter.lastUpdate = time.clock()
+
         angles = []
-        for i in range(0, len(events)):
-             angles.append(self.filter.processingEvent(events[i]))
+        angles.append(self.filter.processingEvent(events[len(events) - 1]))
+        # for i in range(0, len(events)):
+        #       angles.append(self.filter.processingEvent(events[i]))
         return angles
 
 class BoxItem(gl.GLMeshItem):
