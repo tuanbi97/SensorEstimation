@@ -57,7 +57,7 @@ class Transformer():
     def transform(self, events):
 
         angles = []
-        angles.append(self.filter.processingEvent(events[len(events) - 1], False))
+        angles.append(self.filter.processingEvent(events[len(events) - 1]))
         # for i in range(0, len(events)):
         #       angles.append(self.filter.processingEvent(events[i], False))
         return angles
@@ -206,6 +206,14 @@ c.show()
 c1 = CubeView(title = "Mahony", position = [1000, 500, 400, 400])
 c1.box.transformer.filter = MahonyAHRS()
 c1.show()
+
+# c2 = CubeView(title = "Magdwick9D", position = [1400, 100, 400, 400])
+# c2.box.transformer.filter = MadgwickAHRS(True)
+# c2.show()
+#
+# c3 = CubeView(title = "Mahony9D", position = [1400, 500, 400, 400])
+# c3.box.transformer.filter = MahonyAHRS(True)
+# c3.show()
 
 streamer.start(40, PORT = 5556)
 sys.exit(app.exec_())

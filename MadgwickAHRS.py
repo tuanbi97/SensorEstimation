@@ -5,19 +5,20 @@ import time
 
 class MadgwickAHRS:
 
-    def __init__(self):
+    def __init__(self, withMagnetic = False):
         self.q0 = 1.0
         self.q1 = 0.0
         self.q2 = 0.0
         self.q3 = 0.0
         self.beta = 0.1
         self.lastUpdate = time.clock()
+        self.withMagnetic = withMagnetic
 
-    def processingEvent(self, event, withMagnetic = False):
+    def processingEvent(self, event):
         ax, ay, az = event[0]
         gx, gy, gz = event[1]
         mx, my, mz = event[2]
-        if withMagnetic == False:
+        if self.withMagnetic == False:
             self.MadgwickAHRSupdateIMU(gx, gy, gz, ax, ay, az)
         else:
             self.MadgwickAHRSupdate(gx, gy, gz, ax, ay, az, mx, my, mz)

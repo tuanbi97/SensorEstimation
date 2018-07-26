@@ -5,7 +5,7 @@ import time
 
 class MahonyAHRS:
 
-    def __init__(self):
+    def __init__(self, withMagnetic = False):
         self.q0 = 1.0
         self.q1 = 0.0
         self.q2 = 0.0
@@ -16,12 +16,13 @@ class MahonyAHRS:
         self.integralFBy = 0.0
         self.integralFBz = 0.0
         self.lastUpdate = time.clock()
+        self.withMagnetic = withMagnetic
 
-    def processingEvent(self, event, withMagnetic = False):
+    def processingEvent(self, event):
         ax, ay, az = event[0]
         gx, gy, gz = event[1]
         mx, my, mz = event[2]
-        if (withMagnetic):
+        if (self.withMagnetic):
             self.MahonyAHRSupdate(gx, gy, gz, ax, ay, az, mx, my, mz)
         else:
             self.MahonyAHRSupdateIMU(gx, gy, gz, ax, ay, az)
