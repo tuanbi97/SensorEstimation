@@ -9,6 +9,7 @@ import pyqtgraph.opengl as gl
 import numpy as np
 from pyqtgraph import Transform3D
 from MadgwickAHRS import MadgwickAHRS
+from MahonyAHRS import MahonyAHRS
 from SensorStreamer import SensorStreamer
 from OpenGL.GL import *
 
@@ -74,15 +75,14 @@ class Transformer():
 
     def __init__(self):
         self.filter = MadgwickAHRS()
+        #self.filter = MahonyAHRS()
 
     def transform(self, events):
-        # if self.filter.lastUpdate == -1:
-        #     self.filter.lastUpdate = time.clock()
 
         angles = []
-        angles.append(self.filter.processingEvent(events[len(events) - 1]))
+        angles.append(self.filter.processingEvent(events[len(events) - 1], False))
         # for i in range(0, len(events)):
-        #       angles.append(self.filter.processingEvent(events[i]))
+        #       angles.append(self.filter.processingEvent(events[i], False))
         return angles
 
 class BoxItem(gl.GLMeshItem):
