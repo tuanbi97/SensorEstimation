@@ -48,6 +48,29 @@ class ViewAxis(gl.GLAxisItem):
 
         glLineWidth(1)
 
+class CubeView(gl.GLViewWidget):
+    def __init__(self, title='Untitled'):
+        super(CubeView, self).__init__()
+        self.title = title
+        self.initUI(title)
+
+    def initUI(self, title):
+        self.opts['elevation'] = 0
+        self.opts['azimuth'] = -90
+        self.setWindowTitle(title)
+        self.setGeometry(600, 110, 600, 600)
+
+        self.ax = ViewAxis(width=1, alpha=0.6, mvisible=True)
+        self.ax.setSize(10, 10, 10)
+
+        v = self.cameraPosition()
+        self.box = BoxItem(size=[1.2, 2, 0.3])
+
+        self.addItem(self.box.ax)
+        self.addItem(self.ax)
+
+        streamer.register(self.box)
+
 class Transformer():
 
     def __init__(self):
@@ -144,30 +167,6 @@ class BoxItem(gl.GLMeshItem):
         self.ax.translate(dx, dy, dz, local)
 
 
-class CubeView(gl.GLViewWidget):
-    def __init__(self, title='Untitled'):
-        super(CubeView, self).__init__()
-        self.title = title
-        self.initUI(title)
-
-    def initUI(self, title):
-        self.opts['elevation'] = 0
-        self.opts['azimuth'] = -90
-        self.setWindowTitle(title)
-        self.setGeometry(600, 110, 600, 600)
-
-        self.ax = ViewAxis(width=1, alpha=0.6, mvisible=True)
-        self.ax.setSize(10, 10, 10)
-
-        v = self.cameraPosition()
-        self.box = BoxItem(size=[1.2, 2, 0.3])
-
-        self.addItem(self.box.ax)
-        self.addItem(self.ax)
-
-        streamer.register(self.box)
-
-
 streamer = SensorStreamer()
 app = QtGui.QApplication(sys.argv)
 
@@ -175,6 +174,6 @@ app = QtGui.QApplication(sys.argv)
 c = CubeView('Baseline')
 c.show()
 
-streamer.start(40, PORT = 5556)
+streamer.start(5, PORT = 5556)
 
 sys.exit(app.exec_())

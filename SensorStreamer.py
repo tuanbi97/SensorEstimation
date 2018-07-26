@@ -1,4 +1,5 @@
 import socket
+import time
 from PyQt4 import QtCore
 
 class SensorStreamer:
@@ -7,6 +8,7 @@ class SensorStreamer:
         self.listeners = []
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.update)
+        self.lastCall = time.clock()
 
     def init_socket(self, HOST, PORT):
         self.HOST = HOST
@@ -21,6 +23,8 @@ class SensorStreamer:
             exit(1)
 
     def update(self):
+        print(time.clock() - self.lastCall)
+        self.lastCall = time.clock()
         data = self.conn.recv(4096)
         chunk = data.split('\n')
         events = []
