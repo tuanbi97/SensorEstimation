@@ -171,7 +171,8 @@ app = QtGui.QApplication(sys.argv)
 
 # Cube view
 c = CubeView('Baseline')
-c.box.transformer.filter = MadgwickAHRS(True)
+c.box.transformer.filter = MadgwickAHRS(False)
+#c.box.transformer.filter = MahonyAHRS(False)
 c.show()
 
 streamer.start(40, PORT = 5556)
