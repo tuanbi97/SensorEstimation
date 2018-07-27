@@ -27,9 +27,15 @@ class MadgwickAHRS:
 
     def Quaternion2YPR(self):
 
-        roll = math.atan2(2 * (self.q0 * self.q1 + self.q2 * self.q3), self.q0**2 - self.q1**2 - self.q2**2 + self.q3**2)
+        # roll = math.atan2(2 * (self.q0 * self.q1 + self.q2 * self.q3), self.q0**2 - self.q1**2 - self.q2**2 + self.q3**2)
+        # pitch = -math.asin(2 * (self.q1 * self.q3 - self.q0 * self.q2))
+        # yaw = math.atan2(2 * (self.q1 * self.q2 + self.q0 * self.q3), self.q0**2 + self.q1**2 - self.q2**2 - self.q3**2)
+
+        roll = math.atan2(2 * (self.q0 * self.q1 + self.q2 * self.q3),
+                          2*self.q0 ** 2 - 1 + 2*self.q3 ** 2)
         pitch = -math.asin(2 * (self.q1 * self.q3 - self.q0 * self.q2))
-        yaw = math.atan2(2 * (self.q1 * self.q2 + self.q0 * self.q3), self.q0**2 + self.q1**2 - self.q2**2 - self.q3**2)
+        yaw = math.atan2(2 * (self.q1 * self.q2 + self.q0 * self.q3),
+                         2*self.q0 ** 2 + 2*self.q1 ** 2 - 1)
 
         return [yaw * 180 / math.pi, pitch * 180 / math.pi, roll * 180 / math.pi]
 
