@@ -80,7 +80,7 @@ class Transformer():
     def transform(self, events):
 
         angles = []
-        angles.append(self.filter.processingEvent(events[len(events) - 1], False))
+        angles.append(self.filter.processingEvent(events[len(events) - 1]))
         # for i in range(0, len(events)):
         #       angles.append(self.filter.processingEvent(events[i], False))
         return angles
@@ -171,6 +171,7 @@ app = QtGui.QApplication(sys.argv)
 
 # Cube view
 c = CubeView('Baseline')
+c.box.transformer.filter = MadgwickAHRS(True)
 c.show()
 
 streamer.start(40, PORT = 5556)
