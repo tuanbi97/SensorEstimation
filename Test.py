@@ -165,15 +165,95 @@ class BoxItem(gl.GLMeshItem):
     def translate(self, dx, dy, dz, local=False):
         self.ax.translate(dx, dy, dz, local)
 
+class SensorPlot(pg.PlotWidget):
+    def __init__(self, plottype=0, needTr = False, title='Untitled', yRange = [-16, 16], xRange = [0, 600]):
+        super(SensorPlot, self).__init__()
+        self.transformer = Transformer()
+        self.X = []
+        self.Y = []
+        self.Z = []
+        self.maxRangeDisplay = 600
+        self.plottype = plottype
+        self.getPlotItem().setTitle(title)
+
+        self.setRange(yRange=yRange, xRange=xRange)
+        self.needTr = needTr
+        self.initialize()
+
+    def initialize(self):
+        self.pltX = self.plot(pen=QtGui.QPen(QtGui.QColor(255, 0, 0)))
+        self.pltY = self.plot(pen=QtGui.QPen(QtGui.QColor(0, 255, 0)))
+        self.pltZ = self.plot(pen=QtGui.QPen(QtGui.QColor(0, 0, 255)))
+
+    def mrotate(self, angle, x, y, z):
+        tr = Transform3D()
+        tr.rotate(angle, x, y, z)
+        return tr
+
+    def sensorTransform(self, events, angle, plottype):
+        #print(1)
+        rotationMatrix = self.mrotate(angle[0], 0, 0, 1) * self.mrotate(angle[1], 0, 1, 0) * self.mrotate(angle[2], 1, 0, 0)
+        for i in range(0, len(events)):
+            v = events[i][plottype]
+            v = np.append(v, 1)
+            vr = QtGui.QVector4D(v[0], v[1], v[2], v[3])
+            vr = rotationMatrix * vr
+            events[i][plottype] = [vr.x(), vr.y(), vr.z()]
+
+    def receive(self, events):
+        if self.needTr:
+            angles = self.transformer.transform(events)
+            self.sensorTransform(events, angles[0], self.plottype) #one angle
+
+        self.draw(events)
+
+    def draw(self, events):
+        for i in range(len(events)):
+            event = events[i]
+            self.X.append(event[self.plottype][0])
+            self.Y.append(event[self.plottype][1])
+            self.Z.append(event[self.plottype][2])
+            id = int(event[3])
+            if id > self.maxRangeDisplay:
+                self.X = self.X[1:len(self.X)]
+                self.Y = self.Y[1:len(self.Y)]
+                self.Z = self.Z[1:len(self.Z)]
+                self.setRange(xRange = [id - self.maxRangeDisplay + 1, id])
+        self.pltX.setData(y = self.X, x = range(id - len(self.X) + 1, id + 1))
+        self.pltY.setData(y = self.Y, x = range(id - len(self.Y) + 1, id + 1))
+        self.pltZ.setData(y = self.Z, x = range(id - len(self.Z) + 1, id + 1))
+
+class Window(QtGui.QWidget):
+    def __init__(self):
+        super(Window, self).__init__()
+        self.initUI()
+
+    def initUI(self):
+
+        layout = QtGui.QGridLayout()
+        layout.setSpacing(20)
+        self.setLayout(layout)
+        self.setGeometry(200, 100, 800, 800)
+
+        self.p1 = SensorPlot(0, False, 'Acceleration', yRange = [-16, 16])
+        self.p2 = SensorPlot(0, True, 'Transformed Acceleration', yRange = [-16, 16])
+
+        streamer.register(self.p1)
+        streamer.register(self.p2)
+
+        layout.addWidget(self.p1, 0, 0)
+        layout.addWidget(self.p2, 1, 0)
 
 streamer = SensorStreamer()
 app = QtGui.QApplication(sys.argv)
 
+w = Window()
+w.show()
 # Cube view
-c = CubeView('Baseline')
-c.box.transformer.filter = MadgwickAHRS(withMagnetic = False)
+#c = CubeView('Baseline')
+#c.box.transformer.filter = MadgwickAHRS(withMagnetic = False)
 #c.box.transformer.filter = MahonyAHRS(False)
-c.show()
+#c.show()
 
 streamer.start(40, PORT = 5556)
 
