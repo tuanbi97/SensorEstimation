@@ -171,7 +171,7 @@ app = QtGui.QApplication(sys.argv)
 
 # Cube view
 c = CubeView('Baseline')
-c.box.transformer.filter = MadgwickAHRS(False)
+c.box.transformer.filter = MadgwickAHRS(withMagnetic = False)
 #c.box.transformer.filter = MahonyAHRS(False)
 c.show()
 
