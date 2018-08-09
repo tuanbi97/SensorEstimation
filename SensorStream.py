@@ -118,7 +118,7 @@ class BoxItem(gl.GLMeshItem):
     def draw(self, angles):
         for i in range(0, len(angles)):
             orientation = angles[i]
-            #print(orientation)
+            print(orientation)
             v, rm = self.getRotation(orientation)
             self.ax.setTransform(rm)
 
@@ -203,17 +203,17 @@ c = CubeView(title = "Magdwick", position = [1000, 100, 400, 400])
 c.box.transformer.filter = MadgwickAHRS()
 c.show()
 
-c1 = CubeView(title = "Mahony", position = [1000, 500, 400, 400])
-c1.box.transformer.filter = MahonyAHRS()
-c1.show()
-
-c2 = CubeView(title = "Magdwick9D", position = [1400, 100, 400, 400])
-c2.box.transformer.filter = MadgwickAHRS(True)
-c2.show()
-
-c3 = CubeView(title = "Mahony9D", position = [1400, 500, 400, 400])
-c3.box.transformer.filter = MahonyAHRS(True)
-c3.show()
+# c1 = CubeView(title = "Mahony", position = [1000, 500, 400, 400])
+# c1.box.transformer.filter = MahonyAHRS()
+# c1.show()
+#
+# c2 = CubeView(title = "Magdwick9D", position = [1400, 100, 400, 400])
+# c2.box.transformer.filter = MadgwickAHRS(True)
+# c2.show()
+#
+# c3 = CubeView(title = "Mahony9D", position = [1400, 500, 400, 400])
+# c3.box.transformer.filter = MahonyAHRS(True)
+# c3.show()
 
 streamer.start(40, PORT = 5556)
 sys.exit(app.exec_())
