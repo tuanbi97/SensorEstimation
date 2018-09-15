@@ -25,8 +25,7 @@ class MahonyAHRS:
         mx, my, mz = event[2]
         if self.lastUpdate == -1:
             self.lastUpdate = event[4]
-            return
-        self.invSampleFreq = event[4] - self.lastUpdate
+        self.invSampleFreq = (event[4] - self.lastUpdate) / 1000000000
         self.lastUpdate = event[4]
         if (self.withMagnetic):
             self.MahonyAHRSupdate(gx, gy, gz, ax, ay, az, mx, my, mz)

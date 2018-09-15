@@ -1,5 +1,6 @@
 import socket
 import time
+import numpy as np
 from PyQt4 import QtCore
 
 class SensorStreamer:
@@ -31,18 +32,19 @@ class SensorStreamer:
         events = []
         for j in range(0, len(chunk) - 1):
             tmp = chunk[j]
-            ax, ay, az, gx, gy, gz, mx, my, mz, id = [float(x) for x in tmp.split()]
+            ax, ay, az, gx, gy, gz, mx, my, mz, id, nanoTime = [float(x) for x in tmp.split()]
             event = []
             event.append((ax, ay, az))
             event.append((gx, gy, gz))
             event.append((mx, my, mz))
             event.append(id)
+            event.append(nanoTime)
             events.append(event)
         self.notifyAll(events)
 
     def notifyAll(self, events):
         for i in range(0, len(self.listeners)):
-            self.listeners[i].receive(events)
+            self.listeners[i].receive(np.array(events))
 
     def register(self, listener):
         self.listeners.append(listener)
