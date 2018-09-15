@@ -15,13 +15,19 @@ class MahonyAHRS:
         self.integralFBx = 0.0
         self.integralFBy = 0.0
         self.integralFBz = 0.0
-        self.lastUpdate = time.clock()
+        self.lastUpdate = -1
+        self.invSampleFreq = 0
         self.withMagnetic = withMagnetic
 
     def processingEvent(self, event):
         ax, ay, az = event[0]
         gx, gy, gz = event[1]
         mx, my, mz = event[2]
+        if self.lastUpdate == -1:
+            self.lastUpdate = event[4]
+            return
+        self.invSampleFreq = event[4] - self.lastUpdate
+        self.lastUpdate = event[4]
         if (self.withMagnetic):
             self.MahonyAHRSupdate(gx, gy, gz, ax, ay, az, mx, my, mz)
         else:
@@ -38,11 +44,6 @@ class MahonyAHRS:
         return [yaw * 180 / math.pi, pitch * 180 / math.pi, roll * 180 / math.pi]
 
     def MahonyAHRSupdate(self, gx, gy, gz, ax, ay, az, mx, my, mz):
-
-        t = time.clock()
-        self.sampleFreq = 1 / (t - self.lastUpdate)
-        self.invSampleFreq = 1 / self.sampleFreq
-        self.lastUpdate = t
 
         if not ((ax == 0.0) and (ay == 0.0) and (az == 0.0)):
 
@@ -117,11 +118,6 @@ class MahonyAHRS:
         self.q3 *= recipNorm
 
     def MahonyAHRSupdateIMU(self, gx, gy, gz, ax, ay, az):
-
-        t = time.clock()
-        self.sampleFreq = 1 / (t - self.lastUpdate)
-        self.invSampleFreq = 1 / self.sampleFreq
-        self.lastUpdate = t
 
         if not ((ax == 0.0) and (ay == 0.0) and (az == 0.0)) :
 

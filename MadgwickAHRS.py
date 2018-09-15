@@ -11,13 +11,19 @@ class MadgwickAHRS:
         self.q2 = 0.0
         self.q3 = 0.0
         self.beta = 0.1
-        self.lastUpdate = time.clock()
+        self.lastUpdate = -1
+        self.invSampleFreq = 0
         self.withMagnetic = withMagnetic
 
     def processingEvent(self, event):
         ax, ay, az = event[0]
         gx, gy, gz = event[1]
         mx, my, mz = event[2]
+        if self.lastUpdate == -1:
+            self.lastUpdate = event[4]
+            return
+        self.invSampleFreq = event[4] - self.lastUpdate
+        self.lastUpdate = event[4]
         if self.withMagnetic == False:
             self.MadgwickAHRSupdateIMU(gx, gy, gz, ax, ay, az)
         else:
@@ -40,11 +46,6 @@ class MadgwickAHRS:
         return [yaw * 180 / math.pi, pitch * 180 / math.pi, roll * 180 / math.pi]
 
     def MadgwickAHRSupdate(self, gx, gy, gz, ax, ay, az, mx, my, mz):
-
-        t = time.clock()
-        sampleFreq = 1.0 / (t-self.lastUpdate)
-        invSampleFreq = 1.0 / sampleFreq
-        self.lastUpdate = t
 
         qDot1 = 0.5 * (-self.q1 * gx - self.q2 * gy - self.q3 * gz)
         qDot2 = 0.5 * (self.q0 * gx + self.q2 * gz - self.q3 * gy)
@@ -111,10 +112,10 @@ class MadgwickAHRS:
             qDot3 -= self.beta * s2
             qDot4 -= self.beta * s3
 
-        self.q0 += qDot1 * invSampleFreq
-        self.q1 += qDot2 * invSampleFreq
-        self.q2 += qDot3 * invSampleFreq
-        self.q3 += qDot4 * invSampleFreq
+        self.q0 += qDot1 * self.invSampleFreq
+        self.q1 += qDot2 * self.invSampleFreq
+        self.q2 += qDot3 * self.invSampleFreq
+        self.q3 += qDot4 * self.invSampleFreq
 
         recipNorm = self.invSqrt(self.q0 * self.q0 + self.q1 * self.q1 + self.q2 * self.q2 + self.q3 * self.q3)
         self.q0 *= recipNorm
@@ -123,11 +124,6 @@ class MadgwickAHRS:
         self.q3 *= recipNorm
 
     def MadgwickAHRSupdateIMU(self, gx, gy, gz, ax, ay, az):
-
-        t = time.clock()
-        sampleFreq = 1 / (t - self.lastUpdate)
-        invSampleFreq = 1 / sampleFreq
-        self.lastUpdate = t
 
         # Rate of change of quaternion from gyroscope
         qDot1 = 0.5 * (-self.q1 * gx - self.q2 * gy - self.q3 * gz)
@@ -180,10 +176,10 @@ class MadgwickAHRS:
             qDot4 -= self.beta * s3a
 
         # Integrate rate of change of quaternion to yield quaternion
-        self.q0 += qDot1 * invSampleFreq
-        self.q1 += qDot2 * invSampleFreq
-        self.q2 += qDot3 * invSampleFreq
-        self.q3 += qDot4 * invSampleFreq
+        self.q0 += qDot1 * self.invSampleFreq
+        self.q1 += qDot2 * self.invSampleFreq
+        self.q2 += qDot3 * self.invSampleFreq
+        self.q3 += qDot4 * self.invSampleFreq
 
         # Normalise quaternion
         recipNorm = self.invSqrt(self.q0**2+self.q1**2+self.q2**2+self.q3**2)
