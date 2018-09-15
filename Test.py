@@ -58,7 +58,7 @@ class CubeView(gl.GLViewWidget):
         self.opts['elevation'] = 0
         self.opts['azimuth'] = -90
         self.setWindowTitle(title)
-        self.setGeometry(600, 110, 600, 600)
+        self.setGeometry(1000, 100, 600, 600)
 
         self.ax = ViewAxis(width=1, alpha=0.6, mvisible=True)
         self.ax.setSize(10, 10, 10)
@@ -251,8 +251,8 @@ w = Window()
 w.show()
 # Cube view
 c = CubeView('Baseline')
-c.box.transformer.filter = MadgwickAHRS(False)
-#c.box.transformer.filter = MahonyAHRS(False)
+#c.box.transformer.filter = MadgwickAHRS(False)
+c.box.transformer.filter = MahonyAHRS(False)
 c.show()
 
 streamer.start(40, PORT = 5556)
