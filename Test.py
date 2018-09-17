@@ -80,13 +80,16 @@ class Transformer():
     def transform(self, events):
 
         angles = []
-        angles.append(self.filter.processingEvent(events[len(events) - 1]))
-        # for i in range(0, len(events)):
-        #       angles.append(self.filter.processingEvent(events[i], False))
+        #angles.append(self.filter.processingEvent(events[len(events) - 1]))
+        for i in range(0, len(events)):
+            angles.append(self.filter.processingEvent(events[i]))
         return angles
 
 class BoxItem(gl.GLMeshItem):
     def __init__(self, size=[1, 1, 1]):
+        self.cX = 0
+        self.cY = 0
+        self.cZ = 0
         self.verts = []
         tz = -1
         for x in range(-1, 2, 2):
@@ -135,14 +138,33 @@ class BoxItem(gl.GLMeshItem):
 
     def receive(self, events):
         # print(len(events))
-        angles = self.transformer.transform(events)
-        self.draw(angles)
+        self.draw(events)
 
-    def draw(self, angles):
+    def draw(self, events):
+        angles = self.transformer.transform(events)
         for i in range(0, len(angles)):
             orientation = angles[i]
-            v, rm = self.getRotation(orientation)
-            self.ax.setTransform(rm)
+            #v, rm = self.getRotation(orientation)
+            rm = self.getRotation(orientation)
+            v = events[i][0]
+            v = np.append(v, 1)
+            vr = QtGui.QVector4D(v[0], v[1], v[2], v[3])
+            vr = rm * vr
+            #print(vr)
+            dt = self.transformer.filter.invSampleFreq
+            linVelx = vr.x() * dt
+            linVely = vr.y() * dt
+            linVelz = (vr.z() - 9.81) * dt
+            self.cX = self.cX + linVelx
+            self.cY = self.cY + linVely
+            self.cZ = self.cZ + linVelz
+            px = self.cX * dt
+            py = self.cY * dt
+            pz = self.cZ * dt
+            print(px, ' ', py, ' ', pz)
+
+            tm = QtGui.QMatrix4x4(1, 0, 0, px, 0, 1, 0, py, 0, 0, 1, pz, 0, 0, 0, 1)
+            self.ax.setTransform(tm)
 
     def mrotate(self, angle, x, y, z):
         tr = Transform3D()
@@ -154,13 +176,14 @@ class BoxItem(gl.GLMeshItem):
         #rotationMatrix = self.mrotate(angles[0], 0, 0, 1) * self.mrotate(angles[1], 1, 0, 0) * self.mrotate(angles[2], 0, 1, 0)
         rotationMatrix = self.mrotate(angles[0], 0, 0, 1) * self.mrotate(angles[1], 0, 1, 0) * self.mrotate(angles[2], 1, 0, 0)
         # test Transform
-        for i in range(0, len(self.verts)):
-            vertex = self.verts[i]
-            vertex = np.append(vertex, 1)
-            vr = QtGui.QVector4D(vertex[0], vertex[1], vertex[2], vertex[3])
-            vr = rotationMatrix * vr
-            v.append([vr.x(), vr.y(), vr.z()])
-        return np.array(v), rotationMatrix
+        # for i in range(0, len(self.verts)):
+        #     vertex = self.verts[i]
+        #     vertex = np.append(vertex, 1)
+        #     vr = QtGui.QVector4D(vertex[0], vertex[1], vertex[2], vertex[3])
+        #     vr = rotationMatrix * vr
+        #     v.append([vr.x(), vr.y(), vr.z()])
+        # return np.array(v), rotationMatrix
+        return rotationMatrix
 
     def translate(self, dx, dy, dz, local=False):
         self.ax.translate(dx, dy, dz, local)
@@ -251,8 +274,8 @@ w = Window()
 w.show()
 # Cube view
 c = CubeView('Baseline')
-#c.box.transformer.filter = MadgwickAHRS(False)
-c.box.transformer.filter = MahonyAHRS(False)
+c.box.transformer.filter = MadgwickAHRS(False)
+#c.box.transformer.filter = MahonyAHRS(False)
 c.show()
 
 streamer.start(40, PORT = 5556)
