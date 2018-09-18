@@ -161,10 +161,10 @@ class BoxItem(gl.GLMeshItem):
             px = self.cX * dt
             py = self.cY * dt
             pz = self.cZ * dt
-            print(px, ' ', py, ' ', pz)
+            #print(px, ' ', py, ' ', pz)
 
             tm = QtGui.QMatrix4x4(1, 0, 0, px, 0, 1, 0, py, 0, 0, 1, pz, 0, 0, 0, 1)
-            self.ax.setTransform(tm)
+            self.ax.setTransform(rm)
 
     def mrotate(self, angle, x, y, z):
         tr = Transform3D()
