@@ -203,6 +203,18 @@ class SensorPlot(pg.PlotWidget):
         self.needTr = needTr
         self.initialize()
 
+    def openFile(self, file):
+        self.file = file
+
+    def closeFile(self):
+        self.file.close()
+
+    def writeFile(self, events):
+        for i in range(0, len(events)):
+            self.file.write(str(events[i][0][0]) + ',' + str(events[i][0][1]) + ',' + str(events[i][0][2]) + ',' +
+                            str(events[i][1][0]) + ',' + str(events[i][1][1]) + ',' + str(events[i][1][2]) + ',' +
+                            str(events[i][4]) + '\n')
+
     def initialize(self):
         self.pltX = self.plot(pen=QtGui.QPen(QtGui.QColor(255, 0, 0)))
         self.pltY = self.plot(pen=QtGui.QPen(QtGui.QColor(0, 255, 0)))
@@ -229,6 +241,7 @@ class SensorPlot(pg.PlotWidget):
             self.sensorTransform(events, angles[0], self.plottype) #one angle
 
         self.draw(events)
+        self.writeFile(events)
 
     def draw(self, events):
         for i in range(len(events)):
@@ -250,6 +263,7 @@ class Window(QtGui.QWidget):
     def __init__(self):
         super(Window, self).__init__()
         self.initUI()
+        self.id = 0
 
     def initUI(self):
 
@@ -277,6 +291,12 @@ class Window(QtGui.QWidget):
         self.stopBtn.clicked.connect(self.onBtnStop)
 
     def onBtnStart(self):
+        self.id += 1
+        self.file = open('seq_acc_%03d.csv' % self.id, 'w')
+        self.file1 = open('seq_acc_tr_%03d.csv' % self.id, 'w')
+        self.p1.openFile(self.file)
+        self.p2.openFile(self.file1)
+
         global conn
         conn.sendall('start\n')
         streamer.start(40, PORT = 5556)
@@ -286,6 +306,8 @@ class Window(QtGui.QWidget):
         global conn
         conn.sendall('stop\n')
         streamer.stop()
+        self.p1.closeFile()
+        self.p2.closeFile()
         pass
 
 streamer = SensorStreamer()
