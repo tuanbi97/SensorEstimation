@@ -264,11 +264,45 @@ class Window(QtGui.QWidget):
         streamer.register(self.p1)
         streamer.register(self.p2)
 
-        layout.addWidget(self.p1, 0, 0)
-        layout.addWidget(self.p2, 1, 0)
+        layout.addWidget(self.p1, 0, 0, 1, 2)
+        layout.addWidget(self.p2, 1, 0, 1, 2)
+
+        self.startBtn = QtGui.QPushButton("Start", self)
+        self.stopBtn = QtGui.QPushButton("Stop", self)
+
+        layout.addWidget(self.startBtn, 2, 0)
+        layout.addWidget(self.stopBtn, 2, 1)
+
+        self.startBtn.clicked.connect(self.onBtnStart)
+        self.stopBtn.clicked.connect(self.onBtnStop)
+
+    def onBtnStart(self):
+        global conn
+        conn.sendall('start\n')
+        streamer.start(40, PORT = 5556)
+        pass
+
+    def onBtnStop(self):
+        global conn
+        conn.sendall('stop\n')
+        streamer.stop()
+        pass
 
 streamer = SensorStreamer()
 app = QtGui.QApplication(sys.argv)
+
+HOST = ''
+PORT = 5557
+serv = socket.socket()
+try:
+    print("Waiting for socket 1")
+    serv.bind((HOST, PORT))
+    serv.listen(socket.SOMAXCONN)
+    conn, addr = serv.accept()
+except KeyboardInterrupt:
+    serv.close()
+    exit(1)
+print("Done")
 
 w = Window()
 w.show()
@@ -278,6 +312,5 @@ c.box.transformer.filter = MadgwickAHRS(False)
 #c.box.transformer.filter = MahonyAHRS(False)
 c.show()
 
-streamer.start(40, PORT = 5556)
 
 sys.exit(app.exec_())

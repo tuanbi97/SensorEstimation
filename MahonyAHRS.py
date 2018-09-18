@@ -19,6 +19,20 @@ class MahonyAHRS:
         self.invSampleFreq = 0
         self.withMagnetic = withMagnetic
 
+    def reset(self):
+        self.q0 = 1.0
+        self.q1 = 0.0
+        self.q2 = 0.0
+        self.q3 = 0.0
+        self.twoKp = 2.0 * 0.5
+        self.twoKi = 2.0 * 0.0
+        self.integralFBx = 0.0
+        self.integralFBy = 0.0
+        self.integralFBz = 0.0
+        self.lastUpdate = -1
+        self.invSampleFreq = 0
+        self.withMagnetic = False
+
     def processingEvent(self, event):
         ax, ay, az = event[0]
         gx, gy, gz = event[1]

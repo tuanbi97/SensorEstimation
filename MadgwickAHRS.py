@@ -14,6 +14,16 @@ class MadgwickAHRS:
         self.lastUpdate = -1
         self.invSampleFreq = 0
         self.withMagnetic = withMagnetic
+        
+    def reset(self):
+        self.q0 = 1.0
+        self.q1 = 0.0
+        self.q2 = 0.0
+        self.q3 = 0.0
+        self.beta = 0.1
+        self.lastUpdate = -1
+        self.invSampleFreq = 0
+        self.withMagnetic = False
 
     def processingEvent(self, event):
         ax, ay, az = event[0]

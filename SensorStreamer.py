@@ -16,12 +16,14 @@ class SensorStreamer:
         self.PORT = PORT
         self.serv = socket.socket()
         try:
+            print("Waiting for socket 2")
             self.serv.bind((self.HOST, self.PORT))
             self.serv.listen(socket.SOMAXCONN)
             self.conn, self.addr = self.serv.accept()
         except KeyboardInterrupt:
             self.serv.close()
             exit(1)
+        print("Done")
 
     def update(self):
         #t = time.clock()
@@ -52,3 +54,9 @@ class SensorStreamer:
     def start(self, delay=50, HOST = '', PORT = 5555):
         self.init_socket(HOST, PORT)
         self.timer.start(delay)
+
+    def stop(self):
+        data = self.conn.recv(4096)
+        self.timer.stop()
+        self.serv.close()
+        self.conn.close()
