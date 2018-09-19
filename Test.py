@@ -277,13 +277,10 @@ class Window(QtGui.QWidget):
         self.setGeometry(800, 100, 800, 800)
 
         self.p1 = SensorPlot(0, False, 'Acceleration', yRange = [-16, 16])
-        self.p2 = SensorPlot(0, True, 'Transformed Acceleration', yRange = [-16, 16])
 
         streamer.register(self.p1)
-        streamer.register(self.p2)
 
         layout.addWidget(self.p1, 0, 0, 1, 2)
-        layout.addWidget(self.p2, 1, 0, 1, 2)
 
         self.startBtn = QtGui.QPushButton("Start", self)
         self.stopBtn = QtGui.QPushButton("Stop", self)
@@ -298,7 +295,6 @@ class Window(QtGui.QWidget):
         self.id += 1
 
         self.p1.openData('Data/seq_acc_%03d' % self.id)
-        self.p2.openData('Data/seq_acc_tr_%03d' % self.id)
 
         self.videoStream.record('Data/Video_%03d' % self.id)
         global conn
@@ -311,7 +307,6 @@ class Window(QtGui.QWidget):
         streamer.stop()
         self.videoStream.stop()
         self.p1.saveData()
-        self.p2.saveData()
 
 streamer = SensorStreamer()
 app = QtGui.QApplication(sys.argv)
