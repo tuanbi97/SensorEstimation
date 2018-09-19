@@ -1,6 +1,7 @@
 import sys
 import math
 import socket
+from scipy import io
 import time
 
 from PyQt4 import QtGui, QtCore
@@ -12,7 +13,7 @@ from MadgwickAHRS import MadgwickAHRS
 from MahonyAHRS import MahonyAHRS
 from SensorStreamer import SensorStreamer
 from OpenGL.GL import *
-
+from VideoStream import VideoStream as vs
 
 class ViewAxis(gl.GLAxisItem):
     def __init__(self, width=1, mvisible=True, alpha=0.6):
@@ -203,17 +204,18 @@ class SensorPlot(pg.PlotWidget):
         self.needTr = needTr
         self.initialize()
 
-    def openFile(self, file):
-        self.file = file
+    def openData(self, filename):
+        self.filename = filename
+        self.data = {'acc':[], 'gyr':[], 'nanoTime': []}
 
-    def closeFile(self):
-        self.file.close()
+    def saveData(self):
+        io.savemat(self.filename, self.data, appendmat=True)
 
-    def writeFile(self, events):
+    def writeData(self, events):
         for i in range(0, len(events)):
-            self.file.write(str(events[i][0][0]) + ',' + str(events[i][0][1]) + ',' + str(events[i][0][2]) + ',' +
-                            str(events[i][1][0]) + ',' + str(events[i][1][1]) + ',' + str(events[i][1][2]) + ',' +
-                            str(events[i][4]) + '\n')
+            self.data['acc'].append([events[i][0][0], events[i][0][1], events[i][0][2]])
+            self.data['gyr'].append([events[i][1][0], events[i][1][1], events[i][1][2]])
+            self.data['nanoTime'].append(events[i][4])
 
     def initialize(self):
         self.pltX = self.plot(pen=QtGui.QPen(QtGui.QColor(255, 0, 0)))
@@ -241,7 +243,7 @@ class SensorPlot(pg.PlotWidget):
             self.sensorTransform(events, angles[0], self.plottype) #one angle
 
         self.draw(events)
-        self.writeFile(events)
+        self.writeData(events)
 
     def draw(self, events):
         for i in range(len(events)):
@@ -264,13 +266,15 @@ class Window(QtGui.QWidget):
         super(Window, self).__init__()
         self.initUI()
         self.id = 0
+        self.videoStream = vs()
+        self.videoStream.start()
 
     def initUI(self):
 
         layout = QtGui.QGridLayout()
         layout.setSpacing(20)
         self.setLayout(layout)
-        self.setGeometry(200, 100, 800, 800)
+        self.setGeometry(800, 100, 800, 800)
 
         self.p1 = SensorPlot(0, False, 'Acceleration', yRange = [-16, 16])
         self.p2 = SensorPlot(0, True, 'Transformed Acceleration', yRange = [-16, 16])
@@ -292,23 +296,22 @@ class Window(QtGui.QWidget):
 
     def onBtnStart(self):
         self.id += 1
-        self.file = open('seq_acc_%03d.csv' % self.id, 'w')
-        self.file1 = open('seq_acc_tr_%03d.csv' % self.id, 'w')
-        self.p1.openFile(self.file)
-        self.p2.openFile(self.file1)
 
+        self.p1.openData('Data/seq_acc_%03d' % self.id)
+        self.p2.openData('Data/seq_acc_tr_%03d' % self.id)
+
+        self.videoStream.record('Data/Video_%03d' % self.id)
         global conn
         conn.sendall('start\n')
         streamer.start(40, PORT = 5556)
-        pass
 
     def onBtnStop(self):
         global conn
         conn.sendall('stop\n')
         streamer.stop()
-        self.p1.closeFile()
-        self.p2.closeFile()
-        pass
+        self.videoStream.stop()
+        self.p1.saveData()
+        self.p2.saveData()
 
 streamer = SensorStreamer()
 app = QtGui.QApplication(sys.argv)
@@ -329,10 +332,9 @@ print("Done")
 w = Window()
 w.show()
 # Cube view
-c = CubeView('Baseline')
-c.box.transformer.filter = MadgwickAHRS(False)
+# c = CubeView('Baseline')
+# c.box.transformer.filter = MadgwickAHRS(False)
 #c.box.transformer.filter = MahonyAHRS(False)
-c.show()
-
+# c.show()
 
 sys.exit(app.exec_())
