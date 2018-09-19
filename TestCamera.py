@@ -22,13 +22,6 @@ class VideoStream(QtCore.QThread):
                 depth_image = np.asanyarray(depth_frame.get_data())
                 color_image = np.asanyarray(color_frame.get_data())
                 depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
-
-                #qt_color_image = QtGui.QImage(color_image, color_image.shape[1], color_image.shape[0], QtGui.QImage.Format_RGB888)
-                #qt_depth_image = QtGui.QImage(depth_colormap, depth_colormap.shape[1], depth_colormap.shape[0], QtGui.QImage.Format_RGB888)
-                #self.changePixmap.emit(qt_color_image)
-                #self.changePixmap.emit(qt_depth_image)
-
-                # Stack both images horizontally
                 images = np.hstack((color_image, depth_colormap))
 
                 # Show images
