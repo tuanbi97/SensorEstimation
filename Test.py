@@ -265,7 +265,7 @@ class Window(QtGui.QWidget):
     def __init__(self):
         super(Window, self).__init__()
         self.initUI()
-        self.id = 0
+        self.id = 50
         self.videoStream = vs()
         self.videoStream.start()
 
